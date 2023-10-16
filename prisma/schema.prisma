@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String @id @default(uuid())
+  firstName String
+  lastName  String
+  username  String
+
+  @@map("user")
+}
+
+model Board {
+  id          String   @id @default(uuid())
+  name        String   @unique @db.VarChar(100)
+  description String   @db.Text
+  stared      Boolean  @default(false)
+  archived    Boolean  @default(false)
+  createdDate DateTime @default(now()) @map("created_date")
+  tasks       Task[]
+
+  @@map("board")
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  dueDate     DateTime? @map("due_date")
+  status      Status
+  archived    Boolean   @default(false)
+  createdDate DateTime  @default(now()) @map("created_date")
+  board       Board     @relation(fields: [boardId], references: [id])
+  boardId     String    @map("board_id")
+
+  @@map("task")
+}
+
+enum Status {
+  BACKLOG
+  BUSY
+  DONE
+}
