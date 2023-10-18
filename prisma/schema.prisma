@@ -24,6 +24,7 @@ model Board {
   archived    Boolean  @default(false)
   createdDate DateTime @default(now()) @map("created_date")
   tasks       Task[]
+  Label       Label[]
 
   @@map("board")
 }
@@ -38,8 +39,19 @@ model Task {
   createdDate DateTime  @default(now()) @map("created_date")
   board       Board     @relation(fields: [boardId], references: [id])
   boardId     String    @map("board_id")
+  labels      Label[]
 
   @@map("task")
+}
+
+model Label {
+  name    String @id @unique
+  color   String
+  board   Board  @relation(fields: [boardId], references: [id])
+  boardId String @map("board_id")
+  tasks   Task[]
+
+  @@map("label")
 }
 
 enum Status {
