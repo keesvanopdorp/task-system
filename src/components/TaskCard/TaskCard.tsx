@@ -12,7 +12,7 @@ export default function TaskCard({ task, listType, className, ...rest }: TaskCar
 	const getStatusCol = (listType: ListType.ARCHIVED | ListType.LIST): number => {
 		switch (listType) {
 			case ListType.ARCHIVED:
-				return 5;
+				return 6;
 			case ListType.LIST:
 				return 2;
 		}
