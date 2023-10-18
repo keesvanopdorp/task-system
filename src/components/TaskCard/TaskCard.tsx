@@ -23,7 +23,7 @@ export default function TaskCard({ task, listType, className, ...rest }: TaskCar
 			case ListType.ARCHIVED:
 				return 7;
 			case ListType.GRID:
-				return 3;
+				return 4;
 			case ListType.LIST:
 				return 2;
 		}
@@ -44,7 +44,7 @@ export default function TaskCard({ task, listType, className, ...rest }: TaskCar
 							</Col>
 						)}
 						{dueDate && (
-							<Col xs={6} md={getDateCol(listType)}>
+							<Col xs={7} md={getDateCol(listType)}>
 								<CardText className={`${new Date(Date.now()) > dueDate ? 'text-danger' : 'text-secondary'}`}>
 									<FontAwesomeIcon icon={faClock} className="me-2" />
 									<i>{dueDate.toDateString()}</i>

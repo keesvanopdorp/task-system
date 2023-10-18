@@ -4,20 +4,39 @@ import { faArrowRight, faBoxArchive, faClock, faCopy, faEdit, faInfoCircle, faMi
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Status, Task } from '@prisma/client';
 import axios from 'axios';
-import _ from 'lodash';
+import _, { take } from 'lodash';
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { useRouter } from 'next/navigation';
-import { ChangeEvent, ReactElement, useState } from 'react';
-import { Col, Form, FormControl, Modal, ModalBody, ModalHeader, Row } from 'react-bootstrap';
+import { ChangeEvent, FocusEvent, ReactElement, ReactNode, useEffect, useState } from 'react';
+import { Col, Form, FormControl, Modal, ModalBody, ModalHeader, Row, ModalProps } from 'react-bootstrap';
 
 interface Props {
 	task: Task;
 }
 
+async function sendPatchRequest(body: any, task: Task, router: AppRouterInstance) {
+	const res = await axios.patch<Task>(`/api/task/${task.id}`, body);
+	const data = res.data;
+	if (data !== task) {
+		router.refresh();
+	}
+}
+
 export default function TaskModal({ task }: Props): ReactElement {
-	const [editDescription, setEditDescription] = useState<boolean>(false);
+	const [descriptionIsPresent, setDescriptionIsPresent] = useState<boolean>(task.description.length > 0 ? false : true);
+	const [editDescription, setEditDescription] = useState<boolean>(descriptionIsPresent);
 	const [editName, setEditName] = useState<boolean>(false);
 	const [editStatus, setEditStatus] = useState<boolean>(false);
 	const [copyTask, setCopyTask] = useState<boolean>(false);
+	const [editDate, setEditDate] = useState<boolean>(false);
+	const [show, setShow] = useState<boolean>(false);
+	const [width, setWidth] = useState<number>(1920);
+
+	useEffect(() => {
+		setDescriptionIsPresent(task.description.length > 0 ? false : true);
+		setShow(true);
+		setWidth(window.innerWidth);
+	}, [task.description, editDescription, show, width]);
 
 	const router = useRouter();
 
@@ -27,11 +46,44 @@ export default function TaskModal({ task }: Props): ReactElement {
 
 	const onArchive = async () => {
 		try {
-			const res = await axios.patch<Task>(`/api/task/${task.id}`, { archived: !task.archived });
-			const newTask = res.data;
+			await sendPatchRequest({ archived: !task.archived }, task, router);
+		} catch (e) {
+			console.error(e);
+		}
+	};
 
-			if (newTask !== task) {
-				router.refresh();
+	const onNameEditBlur = async (e: FocusEvent<HTMLInputElement>) => {
+		try {
+			e.preventDefault();
+			setEditName(false);
+			const inputValue = e.currentTarget.value;
+			if (task.name !== inputValue) {
+				await sendPatchRequest({ name: inputValue }, task, router);
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const onDelete = async () => {
+		try {
+			const res = await axios.delete(`/api/task/${task.id}`);
+			const deletedTask = res.data;
+			if (deletedTask === task) {
+				router.replace(`/board/${task.boardId}`);
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	const onDescriptionBlur = async (e: FocusEvent<HTMLTextAreaElement>) => {
+		try {
+			e.preventDefault();
+			setEditDescription(false);
+			const inputValue = e.currentTarget.value;
+			if (task.description !== inputValue) {
+				await sendPatchRequest({ description: e.currentTarget.value }, task, router);
 			}
 		} catch (e) {
 			console.error(e);
@@ -41,9 +93,9 @@ export default function TaskModal({ task }: Props): ReactElement {
 	const { name, description, archived, dueDate } = task;
 	return (
 		<Modal
-			size={'lg'}
+			size={width < 1920 ? 'xl' : 'lg'}
 			backdrop={editStatus == true || copyTask === true ? false : true}
-			show={true}
+			show={show}
 			onHide={onCloseModal}
 			centered
 			className="px-2">
@@ -53,20 +105,27 @@ export default function TaskModal({ task }: Props): ReactElement {
 						{name}
 					</div>
 				) : (
-					<FormControl onBlur={() => setEditName(false)} value={name} />
+					<FormControl onBlur={onNameEditBlur} defaultValue={name} />
 				)}
 			</ModalHeader>
 			<ModalBody className="px-4">
 				<Row>
 					<Col xs={12} md={10}>
 						<Row>
-							<Col xs={1}>
+							{dueDate !== null && (
+								<Col xs={12}>
+									Date:
+									<FontAwesomeIcon icon={faClock} className="mx-2" />
+									{dueDate?.toDateString()}
+								</Col>
+							)}
+							<Col xs={1} className="mt-2">
 								<FontAwesomeIcon icon={faInfoCircle} size="1x" />
 							</Col>
-							<Col xs={7} md={9}>
+							<Col xs={7} md={9} className="mt-2">
 								<h6 className="fw-bold">Description</h6>
 							</Col>
-							<Col xs={3} md={2}>
+							<Col xs={3} md={2} className="mt-2">
 								<ActionButton
 									fullWidth
 									onClick={() => setEditDescription(!editDescription)}
@@ -79,12 +138,14 @@ export default function TaskModal({ task }: Props): ReactElement {
 								{editDescription !== true ? (
 									<h6 onClick={() => setEditDescription(true)}>{description}</h6>
 								) : (
-									<FormControl onBlur={() => setEditDescription(false)} as="textarea" rows={4} value={description} />
+									<FormControl
+										onBlur={onDescriptionBlur}
+										as="textarea"
+										placeholder={descriptionIsPresent !== true ? 'Add a description' : undefined}
+										rows={4}
+										defaultValue={description}
+									/>
 								)}
-							</Col>
-							<Col>
-								Date <FontAwesomeIcon icon={faClock} />
-								{dueDate?.toDateString()}
 							</Col>
 						</Row>
 					</Col>
@@ -92,7 +153,15 @@ export default function TaskModal({ task }: Props): ReactElement {
 						<Row>
 							<Col xs={6} md={12}>
 								<h6 className="fw-bold text-center">Add to card</h6>
-								<ActionButton icon={faClock} text="Date" variant="secondary" className="my-1" fullWidth />
+								<ActionButton
+									icon={faClock}
+									text="Date"
+									variant="secondary"
+									className="my-1"
+									fullWidth
+									onClick={() => setEditDate(!editDate)}
+								/>
+								{editDate && <DateModal task={task} onHide={() => setEditDate(false)} />}
 								<ActionButton icon={faTags} text="Labels" variant="secondary" className="my-1" fullWidth />
 							</Col>
 							<Col xs={6} md={12}>
@@ -125,7 +194,14 @@ export default function TaskModal({ task }: Props): ReactElement {
 											fullWidth
 											onClick={() => onArchive()}
 										/>
-										<ActionButton className="my-1" icon={faMinus} text="Delete" variant="danger" fullWidth />
+										<ActionButton
+											className="my-1"
+											icon={faMinus}
+											text="Delete"
+											variant="danger"
+											fullWidth
+											onClick={() => onDelete()}
+										/>
 									</>
 								) : (
 									<ActionButton
@@ -146,46 +222,33 @@ export default function TaskModal({ task }: Props): ReactElement {
 	);
 }
 
-interface ModalProps extends Props {
+interface CustomModalProps extends Props {
 	onHide: () => void;
 }
 
-function EditStatusModal({ task, onHide }: ModalProps) {
+function EditStatusModal({ task, onHide }: CustomModalProps) {
 	const [currentStatus, setCurrentStatus] = useState<Status>(Status[task.status]);
 	const router = useRouter();
 
 	const onClick = async () => {
 		try {
-			const res = await axios.patch<Task>(`/api/task/${task.id}`, { status: currentStatus });
-			const newTask = res.data;
-
-			if (newTask !== task) {
-				router.refresh();
-			}
+			await sendPatchRequest({ status: currentStatus }, task, router);
 		} catch (e) {
 			console.error(e);
 		}
 	};
+
 	return (
-		<Modal
-			backdropClassName="custom-modal-backdrop"
-			style={{ zIndex: 999999, position: 'absolute', left: '500px', bottom: '50px' }}
-			show={true}
-			size="sm"
-			centered
-			onHide={onHide}>
-			<ModalHeader closeButton>
-				<h4 className="text-center">Move task</h4>
-			</ModalHeader>
-			<ModalBody>
+		<EditModal title="Move task" onHide={onHide}>
+			<>
 				<StatusSelect onChange={(e) => setCurrentStatus(Status[e.currentTarget.value as keyof typeof Status])} defaultValue={currentStatus} />
 				<ActionButton variant="success" text="Move" fullWidth className="mt-3" onClick={() => onClick()} />
-			</ModalBody>
-		</Modal>
+			</>
+		</EditModal>
 	);
 }
 
-function CopyModal({ task, onHide }: ModalProps) {
+function CopyModal({ task, onHide }: CustomModalProps) {
 	const [currentStatus, setCurrentStatus] = useState<Status>(Status[task.status]);
 	const [currentName, setCurrentName] = useState<string>(task.name);
 
@@ -198,6 +261,7 @@ function CopyModal({ task, onHide }: ModalProps) {
 				name: currentName,
 				description: task.description,
 				boardId: task.boardId,
+				dueDate: task.dueDate,
 			});
 			const newTask = res.data;
 
@@ -209,21 +273,64 @@ function CopyModal({ task, onHide }: ModalProps) {
 		}
 	};
 	return (
-		<Modal
-			backdropClassName="custom-modal-backdrop"
-			style={{ zIndex: 999999, position: 'absolute', left: '500px', bottom: '50px' }}
-			show={true}
-			size="sm"
-			centered
-			onHide={onHide}>
-			<ModalBody>
-				<ModalHeader closeButton>
-					<h4 className="text-center">Copy task</h4>
-				</ModalHeader>
+		<EditModal onHide={onHide} title="Copy task">
+			<>
 				<FormControl defaultValue={task.name} onChange={(e) => setCurrentName(e.currentTarget.value)} className="my-2" />
 				<StatusSelect onChange={(e) => setCurrentStatus(Status[e.currentTarget.value as keyof typeof Status])} defaultValue={currentStatus} />
 				<ActionButton variant="success" text="Copy" fullWidth className="mt-3" onClick={() => onClick()} />
-			</ModalBody>
+			</>
+		</EditModal>
+	);
+}
+
+function DateModal({ task, onHide }: CustomModalProps) {
+	const [newDate, setNewDate] = useState<Date | null>(null);
+	const router = useRouter();
+
+	const onClick = async () => {
+		try {
+			console.log({ dueDate: newDate !== null ? newDate.toISOString() : 'null' });
+			await sendPatchRequest({ dueDate: newDate !== null ? newDate.toISOString() : 'null' }, task, router);
+		} catch (e) {
+			console.error(e);
+		}
+	};
+
+	return (
+		<EditModal onHide={onHide} title="Add date">
+			<>
+				<FormControl
+					type="date"
+					defaultValue={task.dueDate ? task.dueDate.toISOString().substring(0, 10) : undefined}
+					onChange={(e) => setNewDate(new Date(Date.parse(e.currentTarget.value)))}
+				/>
+				<ActionButton text="save" variant="success" onClick={() => onClick()} fullWidth className="my-2" />
+				<ActionButton text="Delete" variant="danger" fullWidth onClick={() => onClick()} />
+			</>
+		</EditModal>
+	);
+}
+
+interface EditModalProps {
+	onHide: () => void;
+	title: string;
+	size?: ModalProps['size'];
+	children: ReactNode;
+}
+
+function EditModal({ onHide, title, children, size = 'sm' }: EditModalProps) {
+	return (
+		<Modal
+			onHide={onHide}
+			size={size}
+			backdropClassName="custom-modal-backdrop"
+			style={{ zIndex: 999999, position: 'absolute', left: '500px', bottom: '50px' }}
+			show={true}
+			centered>
+			<ModalHeader closeButton>
+				<h5>{title}</h5>
+			</ModalHeader>
+			<ModalBody>{children}</ModalBody>
 		</Modal>
 	);
 }

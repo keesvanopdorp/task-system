@@ -20,7 +20,7 @@ export default function BoardCard({ board }: Props) {
 				<CardTitle className="fw-bold">{name}</CardTitle>
 				<CardText>{description}</CardText>
 				<div className="d-flex align-items-center justify-content-between">
-					<Link href={`/board/${id}`}>
+					<Link href={`/board/${id}`} className="text-decoration-none">
 						<Button variant="success" className="d-flex align-items-center">
 							<span>Go to board</span>
 							<FontAwesomeIcon className="ms-3" icon={faArrowRight} />

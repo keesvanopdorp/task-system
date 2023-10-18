@@ -8,3 +8,4 @@ export * from './Navbar';
 export * from './StarToggle';
 export * from './TaskCard';
 export * from './TaskModal';
+export * from './AddTaskCard';

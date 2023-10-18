@@ -12,13 +12,9 @@ interface Props extends ButtonProps {
 
 export default function ActionButton({ variant, icon, text, className = '', fullWidth = false, ...rest }: Props): ReactElement {
 	return (
-		<Button className={`d-flex align-items-center ${className} ${fullWidth ? 'w-100' : ''}`} variant={variant} {...rest}>
-			{icon && <FontAwesomeIcon className={`${text !== undefined ? 'me-2' : ''}`} icon={icon} />}
-			{text && (
-				<div className="text-nowrap" style={{ fontSize: 13 }}>
-					{text}
-				</div>
-			)}
+		<Button className={`d-flex align-items-center px-1 ${className} ${fullWidth ? 'w-100' : ''}`} variant={variant} {...rest}>
+			{icon && <FontAwesomeIcon className={`${text !== undefined ? 'me-1' : ''}`} icon={icon} />}
+			{text && <div className={`text-nowrap ${icon === undefined ? 'w-100 text-center' : ''}`}>{text}</div>}
 		</Button>
 	);
 }

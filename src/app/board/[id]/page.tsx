@@ -1,20 +1,20 @@
-import { Col, FontAwesomeIcon, Row, StarToggle, TaskCard } from '@components';
+import { AddTaskCard, Col, FontAwesomeIcon, Row, StarToggle, TaskCard } from '@components';
 import { faEllipsis } from '@fortawesome/free-solid-svg-icons';
 import { ListType, prisma } from '@libs';
 import { Status } from '@prisma/client';
 import _ from 'lodash';
 import { notFound } from 'next/navigation';
+import { ReactNode } from 'react';
 import { validate as uuidValidate } from 'uuid';
 
 interface PageProps {
 	params: {
 		id: string;
 	};
+	children?: ReactNode;
 }
 
-export default async function ShowBoard({ params }: PageProps) {
-	const { id } = params;
-
+export default async function ShowBoard({ params: { id }, children }: PageProps) {
 	if (!uuidValidate(id)) notFound();
 
 	const board = await prisma.board.findFirstOrThrow({ where: { id }, include: { tasks: { where: { archived: false } } } }).catch((e) => {
@@ -39,17 +39,19 @@ export default async function ShowBoard({ params }: PageProps) {
 			</div>
 			<Row className="mt-3">
 				{_.map(entries, ([key, value]: [string, keyof typeof Status]) => {
-					const filterd = _.filter(tasks, (task) => task.status === Status[value]);
+					const filtered = _.filter(tasks, (task) => task.status === Status[value]);
 					return (
 						<Col key={`col-${key}`} md={col}>
 							<h3 className="text-center">{`${key.substring(0, 1).toLowerCase()}${key.substring(1).toLowerCase()}`}</h3>
-							{_.map(filterd, (task) => (
+							{_.map(filtered, (task) => (
 								<TaskCard key={`task-${task.id}-${task.name}`} task={task} listType={ListType.GRID} />
 							))}
+							<AddTaskCard />
 						</Col>
 					);
 				})}
 			</Row>
+			{children && children}
 		</div>
 	);
 }

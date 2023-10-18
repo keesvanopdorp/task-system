@@ -18,8 +18,11 @@ export default async function ShowTask({ params: { id } }: PageProps) {
 
 	return (
 		<>
-			<ShowBoard params={{ id: board.id }} />
-			<TaskModal task={task} />
+			<ShowBoard params={{ id: board.id }}>
+				<>
+					<TaskModal task={task} />
+				</>
+			</ShowBoard>
 		</>
 	);
 }
