@@ -12,7 +12,7 @@ CREATE TABLE `user` (
 CREATE TABLE `board` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(100) NOT NULL,
-    `description` TEXT NOT NULL,
+    `description` TEXT NULL,
     `stared` BOOLEAN NOT NULL DEFAULT false,
     `archived` BOOLEAN NOT NULL DEFAULT false,
     `created_date` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -25,7 +25,7 @@ CREATE TABLE `board` (
 CREATE TABLE `task` (
     `id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
-    `description` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NULL,
     `due_date` DATETIME(3) NULL,
     `status` ENUM('BACKLOG', 'BUSY', 'DONE') NOT NULL,
     `archived` BOOLEAN NOT NULL DEFAULT false,
