@@ -4,11 +4,11 @@ import { faArrowRight, faBoxArchive, faClock, faCopy, faEdit, faInfoCircle, faMi
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Status, Task } from '@prisma/client';
 import axios from 'axios';
-import _, { take } from 'lodash';
+import _ from 'lodash';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { useRouter } from 'next/navigation';
 import { ChangeEvent, FocusEvent, ReactElement, ReactNode, useEffect, useState } from 'react';
-import { Col, Form, FormControl, Modal, ModalBody, ModalHeader, Row, ModalProps } from 'react-bootstrap';
+import { Col, Form, FormControl, Modal, ModalBody, ModalHeader, ModalProps, Row } from 'react-bootstrap';
 
 interface Props {
 	task: Task;
@@ -23,7 +23,7 @@ async function sendPatchRequest(body: any, task: Task, router: AppRouterInstance
 }
 
 export default function TaskModal({ task }: Props): ReactElement {
-	const [descriptionIsPresent, setDescriptionIsPresent] = useState<boolean>(task.description.length > 0 ? false : true);
+	const [descriptionIsPresent, setDescriptionIsPresent] = useState<boolean>(false);
 	const [editDescription, setEditDescription] = useState<boolean>(descriptionIsPresent);
 	const [editName, setEditName] = useState<boolean>(false);
 	const [editStatus, setEditStatus] = useState<boolean>(false);
@@ -33,7 +33,9 @@ export default function TaskModal({ task }: Props): ReactElement {
 	const [width, setWidth] = useState<number>(1920);
 
 	useEffect(() => {
-		setDescriptionIsPresent(task.description.length > 0 ? false : true);
+		const descriptionIsPresent = !(task.description === null);
+		setDescriptionIsPresent(descriptionIsPresent);
+		if (descriptionIsPresent !== true) setEditDescription(true);
 		setShow(true);
 		setWidth(window.innerWidth);
 	}, [task.description, editDescription, show, width]);
@@ -68,10 +70,7 @@ export default function TaskModal({ task }: Props): ReactElement {
 	const onDelete = async () => {
 		try {
 			const res = await axios.delete(`/api/task/${task.id}`);
-			const deletedTask = res.data;
-			if (deletedTask === task) {
-				router.replace(`/board/${task.boardId}`);
-			}
+			router.replace(`/board/${task.boardId}`);
 		} catch (e) {
 			console.error(e);
 		}
@@ -92,13 +91,7 @@ export default function TaskModal({ task }: Props): ReactElement {
 
 	const { name, description, archived, dueDate } = task;
 	return (
-		<Modal
-			size={width < 1920 ? 'xl' : 'lg'}
-			backdrop={editStatus == true || copyTask === true ? false : true}
-			show={show}
-			onHide={onCloseModal}
-			centered
-			className="px-2">
+		<Modal size={width < 1920 ? 'xl' : 'lg'} show={show} onHide={onCloseModal} centered className="px-2">
 			<ModalHeader closeButton>
 				{editName !== true ? (
 					<div className="w-100" onClick={() => setEditName(!editName)}>
@@ -143,7 +136,7 @@ export default function TaskModal({ task }: Props): ReactElement {
 										as="textarea"
 										placeholder={descriptionIsPresent !== true ? 'Add a description' : undefined}
 										rows={4}
-										defaultValue={description}
+										defaultValue={description !== null ? description : ''}
 									/>
 								)}
 							</Col>

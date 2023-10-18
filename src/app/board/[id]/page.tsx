@@ -46,7 +46,7 @@ export default async function ShowBoard({ params: { id }, children }: PageProps)
 							{_.map(filtered, (task) => (
 								<TaskCard key={`task-${task.id}-${task.name}`} task={task} listType={ListType.GRID} />
 							))}
-							<AddTaskCard />
+							<AddTaskCard boardId={board.id} status={Status[value]} />
 						</Col>
 					);
 				})}
