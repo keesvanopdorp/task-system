@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 const taskSchema = z.object({
 	name: z.string(),
-	description: z.string(),
+	description: z.optional(z.string()),
 	dueDate: z.optional(z.coerce.date()),
 	status: z.nativeEnum(Status),
 	boardId: z.string(),
