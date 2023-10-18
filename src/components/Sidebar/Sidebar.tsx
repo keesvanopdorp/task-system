@@ -13,6 +13,7 @@ interface Props {
 
 export default function Sidebar({ onHide, tasks }: Props): ReactElement {
 	const archived = _.filter(tasks, (task) => task.archived === true);
+
 	return (
 		<Offcanvas show={true} onHide={onHide} placement="end">
 			<OffcanvasHeader closeButton closeLabel="test">
@@ -27,9 +28,11 @@ export default function Sidebar({ onHide, tasks }: Props): ReactElement {
 					<AccordionItem eventKey="1">
 						<AccordionHeader>Archived</AccordionHeader>
 						<AccordionBody className="px-2">
-							{_.map(archived, (task) => (
-								<TaskCard key={`task-${task.id}-${task.name}`} task={task} listType={ListType.ARCHIVED} />
-							))}
+							{archived.length > 0 ? (
+								_.map(archived, (task) => <TaskCard key={`task-${task.id}-${task.name}`} task={task} listType={ListType.ARCHIVED} />)
+							) : (
+								<h6 className="text-center">No archived tasks found</h6>
+							)}
 						</AccordionBody>
 					</AccordionItem>
 				</Accordion>
