@@ -34,7 +34,7 @@ export default function TaskCard({ task, listType, className, ...rest }: TaskCar
 			<Card className={`${className ? className : ''} my-3`} draggable={'true'} {...rest}>
 				<CardBody>
 					<CardTitle>{name}</CardTitle>
-					<CardSubtitle>{description}</CardSubtitle>
+					<CardSubtitle style={{ whiteSpace: 'pre-wrap' }}>{description}</CardSubtitle>
 					<Row className="my-2 w-100">
 						{(listType === ListType.LIST || listType === ListType.ARCHIVED) && (
 							<Col xs={6} md={getStatusCol(listType)}>
