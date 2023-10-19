@@ -1,4 +1,5 @@
 'use client';
+import type { TaskSchema } from '@app/api/task/[id]/route';
 import { ActionButton } from '@components';
 import { faArrowRight, faBoxArchive, faClock, faCopy, faEdit, faInfoCircle, faMinus, faRedo, faTags } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,8 +15,8 @@ interface Props {
 	task: Task;
 }
 
-async function sendPatchRequest(body: any, task: Task, router: AppRouterInstance) {
-	const res = await axios.patch<Task>(`/api/task/${task.id}`, body);
+async function sendPatchRequest(body: TaskSchema, task: Task, router: AppRouterInstance) {
+	const res = await axios.patch<Task>(`/api/task/${task.id}`, { ...body });
 	const data = res.data;
 	if (data !== task) {
 		router.refresh();
@@ -69,7 +70,7 @@ export default function TaskModal({ task }: Props): ReactElement {
 
 	const onDelete = async () => {
 		try {
-			const res = await axios.delete(`/api/task/${task.id}`);
+			await axios.delete(`/api/task/${task.id}`);
 			router.replace(`/board/${task.boardId}`);
 		} catch (e) {
 			console.error(e);
@@ -129,7 +130,9 @@ export default function TaskModal({ task }: Props): ReactElement {
 							</Col>
 							<Col xs={{ span: 11, offset: 1 }} className="mt-2 my-4">
 								{editDescription !== true ? (
-									<h6 onClick={() => setEditDescription(true)}>{description}</h6>
+									<h6 onClick={() => setEditDescription(true)} style={{ whiteSpace: 'pre-wrap' }}>
+										{description}
+									</h6>
 								) : (
 									<FormControl
 										onBlur={onDescriptionBlur}
@@ -282,8 +285,7 @@ function DateModal({ task, onHide }: CustomModalProps) {
 
 	const onClick = async () => {
 		try {
-			console.log({ dueDate: newDate !== null ? newDate.toISOString() : 'null' });
-			await sendPatchRequest({ dueDate: newDate !== null ? newDate.toISOString() : 'null' }, task, router);
+			await sendPatchRequest({ dueDate: newDate !== null ? newDate : null }, task, router);
 		} catch (e) {
 			console.error(e);
 		}
@@ -329,7 +331,7 @@ function EditModal({ onHide, title, children, size = 'sm' }: EditModalProps) {
 }
 
 interface StatusSelectProps {
-	defaultValue?: any;
+	defaultValue?: string | number | readonly string[] | undefined;
 	onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
 }
 
