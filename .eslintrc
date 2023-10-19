@@ -1,9 +1,26 @@
+
 {
-  "plugins": ["prettier"],
-  "extends": "next/core-web-vitals",
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2020": true
+  },
+  "plugins": [
+    "prettier"
+  ],
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react-hooks/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "ignorePatterns": [".next"],
   "rules": {
     "prettier/prettier": "error",
-    "object-curly-spacing": ["error", "always"],
+    "object-curly-spacing": [
+      "error",
+      "always"
+    ],
     "eol-last": "off"
   }
 }

@@ -3,29 +3,27 @@ import { ActionButton } from '@components';
 import { Board } from '@prisma/client';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { MouseEvent, RefObject, useRef, useState } from 'react';
+import { MouseEvent, useState } from 'react';
 import { Card, CardBody, FormControl, FormLabel, Modal, ModalBody, ModalHeader } from 'react-bootstrap';
 
 export default function AddBoardCard() {
 	const [showModal, setShowModal] = useState<boolean>(false);
-	const cardRef = useRef<HTMLDivElement>(null);
 
 	return (
 		<>
-			<Card className="h-100" onClick={() => setShowModal(true)} ref={cardRef}>
+			<Card className="h-100" onClick={() => setShowModal(true)}>
 				<CardBody className="d-flex justify-content-center align-items-center">Add card</CardBody>
 			</Card>
-			{showModal && <AddBoardModal onHide={() => setShowModal(false)} cardRef={cardRef} />}
+			{showModal && <AddBoardModal onHide={() => setShowModal(false)} />}
 		</>
 	);
 }
 
 interface AddBoardModalProps {
 	onHide: () => void;
-	cardRef: RefObject<HTMLDivElement>;
 }
 
-function AddBoardModal({ onHide, cardRef }: AddBoardModalProps) {
+function AddBoardModal({ onHide }: AddBoardModalProps) {
 	const [name, setName] = useState<string>('');
 	const router = useRouter();
 

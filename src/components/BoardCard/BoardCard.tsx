@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function BoardCard({ board, className }: Props) {
-	let { id, name } = board;
+	const { id, name } = board;
 
 	return (
 		<Card className={className ? className : undefined}>

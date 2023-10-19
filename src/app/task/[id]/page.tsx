@@ -13,7 +13,10 @@ interface PageProps {
 export default async function ShowTask({ params: { id } }: PageProps) {
 	if (!uuidValidate(id)) notFound();
 
-	const task = await prisma.task.findFirstOrThrow({ where: { id }, include: { board: true } }).catch((e) => notFound());
+	const task = await prisma.task.findFirstOrThrow({ where: { id }, include: { board: true } }).catch((e) => {
+		console.error(e);
+		notFound();
+	});
 	const { board } = task;
 
 	return (

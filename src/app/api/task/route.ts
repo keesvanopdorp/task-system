@@ -15,8 +15,6 @@ export async function POST(req: Request) {
 	const body = await req.json();
 	const data = await taskSchema.parseAsync(body);
 
-	const board = await prisma.board.findFirstOrThrow({ where: { id: data.boardId } });
-
 	const task = await prisma.task.create({
 		data: {
 			...data,
