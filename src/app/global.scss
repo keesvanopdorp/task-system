@@ -8,6 +8,10 @@
   -ms-user-select: none; /* IE10+ */
 }
 
+body {
+  overflow: hidden;
+}
+
 .custom-modal-backdrop {
   position: fixed;
   top: 0;

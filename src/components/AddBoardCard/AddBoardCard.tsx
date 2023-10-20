@@ -12,7 +12,7 @@ export default function AddBoardCard() {
 	return (
 		<>
 			<Card className="h-100" onClick={() => setShowModal(true)}>
-				<CardBody className="d-flex justify-content-center align-items-center">Add card</CardBody>
+				<CardBody className="d-flex justify-content-center align-items-center">Add board</CardBody>
 			</Card>
 			{showModal && <AddBoardModal onHide={() => setShowModal(false)} />}
 		</>

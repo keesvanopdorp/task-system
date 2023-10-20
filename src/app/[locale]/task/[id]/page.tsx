@@ -1,4 +1,4 @@
-import ShowBoard from '@app/board/[id]/page';
+import ShowBoard from '@app/[locale]/board/[id]/page';
 import { TaskModal } from '@components';
 import { prisma } from '@libs';
 import { notFound } from 'next/navigation';
